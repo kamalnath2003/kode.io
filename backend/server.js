@@ -36,6 +36,10 @@ io.on('connection', (socket) => {
 
     const javac = spawn('javac', [tempFilePath]);
 
+    javac.stderr.on('data', (data) => {
+      io.in(id).emit('outputUpdate', `Compilation error: ${data.toString()}`); // Broadcast compilation errors
+    });
+
     javac.on('close', (code) => {
       if (code === 0) {
         javaProcess = spawn('java', ['-cp', tempDir, 'Main']);
@@ -45,17 +49,17 @@ io.on('connection', (socket) => {
         });
 
         javaProcess.stderr.on('data', (data) => {
-          io.in(id).emit('outputUpdate', data.toString()); // Broadcast error
+          io.in(id).emit('outputUpdate', `Runtime error: ${data.toString()}`); // Broadcast runtime errors
         });
 
         javaProcess.on('close', (code) => {
           if (code !== 0) {
             io.in(id).emit('outputUpdate', `Process exited with code ${code}`);
           }
-          io.in(id).emit('endProcess'); // Notify clients that process has ended
+          io.in(id).emit('endProcess'); // Notify clients that the process has ended
         });
       } else {
-        io.in(id).emit('outputUpdate', 'Compilation failed');
+        io.in(id).emit('outputUpdate', 'Compilation failed'); // Broadcast generic compilation failure if `javac` fails
       }
     });
   });

@@ -16,7 +16,7 @@ function EditorPage() {
     const socketInstance = io(process.env.NODE_ENV === 'production' 
       ? 'https://kode-io-1.onrender.com' 
       : 'http://localhost:5000', {
-        query: { id },
+        query: { id },  
         transports: ['websocket']
     });
 
