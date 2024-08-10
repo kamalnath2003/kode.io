@@ -13,11 +13,11 @@ function EditorPage() {
 
   useEffect(() => {
     // const socketInstance = io('http://localhost:5000',
-    const socketInstance = io('https://kode-io.vercel.app/',
-      
-      {
-      query: { id },
-      transports: ['websocket']
+    const socketInstance = io(process.env.NODE_ENV === 'production' 
+      ? 'https://kode-io.vercel.app' 
+      : 'http://localhost:5000', {
+        query: { id },
+        transports: ['websocket']
     });
 
     setSocket(socketInstance);
