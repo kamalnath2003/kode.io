@@ -14,7 +14,7 @@ function EditorPage() {
   useEffect(() => {
     // const socketInstance = io('http://localhost:5000',
     const socketInstance = io(process.env.NODE_ENV === 'production' 
-      ? 'https://kode-io.vercel.app' 
+      ? 'https://kode-hjns2p38a-kamalnaths-projects.vercel.app' 
       : 'http://localhost:5000', {
         query: { id },
         transports: ['websocket']
