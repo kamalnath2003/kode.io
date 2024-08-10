@@ -12,7 +12,10 @@ function EditorPage() {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:5000', {
+    // const socketInstance = io('http://localhost:5000',
+    const socketInstance = io('https://kode-io.vercel.app/',
+      
+      {
       query: { id },
       transports: ['websocket']
     });
