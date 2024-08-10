@@ -11,7 +11,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "https://kode-jet.vercel.app",
-    
     methods: ["GET", "POST"]
   }
 });
@@ -32,37 +31,40 @@ io.on('connection', (socket) => {
   socket.join(id);
 
   socket.on('startCode', ({ code }) => {
-    console.log(`Compiling code for session ${id}`);
     fs.writeFileSync(tempFilePath, code);
-    io.in(id).emit('codeUpdate', code);
+    io.in(id).emit('codeUpdate', code); // Broadcast code to all clients in the session
 
     const javac = spawn('javac', [tempFilePath]);
 
     javac.on('close', (code) => {
       if (code === 0) {
-        console.log(`Compilation successful for session ${id}`);
         javaProcess = spawn('java', ['-cp', tempDir, 'Main']);
 
         javaProcess.stdout.on('data', (data) => {
-          io.in(id).emit('outputUpdate', data.toString());
+          io.in(id).emit('outputUpdate', data.toString()); // Broadcast output
         });
 
         javaProcess.stderr.on('data', (data) => {
-          io.in(id).emit('outputUpdate', data.toString());
+          io.in(id).emit('outputUpdate', data.toString()); // Broadcast error
         });
 
         javaProcess.on('close', (code) => {
           if (code !== 0) {
-            console.log(`Process exited with code ${code} for session ${id}`);
             io.in(id).emit('outputUpdate', `Process exited with code ${code}`);
           }
-          io.in(id).emit('endProcess');
+          io.in(id).emit('endProcess'); // Notify clients that process has ended
         });
       } else {
-        console.log(`Compilation failed for session ${id}`);
         io.in(id).emit('outputUpdate', 'Compilation failed');
       }
     });
+  });
+
+  socket.on('sendInput', (input) => {
+    if (javaProcess) {
+      javaProcess.stdin.write(input + '\n');
+      io.in(id).emit('inputUpdate', input); // Broadcast input to all clients in the session
+    }
   });
 
   socket.on('codeChange', (newCode) => {
