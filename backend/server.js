@@ -10,7 +10,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // origin: "http://localhost:3000",
     origin: "https://kode-jet.vercel.app",
     methods: ["GET", "POST"]
   }
@@ -30,26 +29,27 @@ io.on('connection', (socket) => {
   let javaProcess = null;
   const { id } = socket.handshake.query;
   socket.join(id);
+
   socket.on('startCode', ({ code }) => {
     console.log(`Compiling code for session ${id}`);
     fs.writeFileSync(tempFilePath, code);
     io.in(id).emit('codeUpdate', code);
-  
+
     const javac = spawn('javac', [tempFilePath]);
-  
+
     javac.on('close', (code) => {
       if (code === 0) {
         console.log(`Compilation successful for session ${id}`);
         javaProcess = spawn('java', ['-cp', tempDir, 'Main']);
-  
+
         javaProcess.stdout.on('data', (data) => {
           io.in(id).emit('outputUpdate', data.toString());
         });
-  
+
         javaProcess.stderr.on('data', (data) => {
           io.in(id).emit('outputUpdate', data.toString());
         });
-  
+
         javaProcess.on('close', (code) => {
           if (code !== 0) {
             console.log(`Process exited with code ${code} for session ${id}`);
@@ -59,8 +59,9 @@ io.on('connection', (socket) => {
         });
       } else {
         console.log(`Compilation failed for session ${id}`);
-        io.in(id).emit('outputUpdate', 'Compilation failed'); // Broadcast input to all clients in the session
-    }
+        io.in(id).emit('outputUpdate', 'Compilation failed');
+      }
+    });
   });
 
   socket.on('codeChange', (newCode) => {
