@@ -14,7 +14,7 @@ function EditorPage() {
   useEffect(() => {
     // const socketInstance = io('http://localhost:5000',
     const socketInstance = io(process.env.NODE_ENV === 'production' 
-      ? 'https://kode-io-1.onrender.com/' 
+      ? 'https://5d26-2405-201-e02a-90bd-2547-6d8f-4338-8cb1.ngrok-free.app/' 
       : 'http://localhost:5000', {
         query: { id },
         transports: ['websocket']
